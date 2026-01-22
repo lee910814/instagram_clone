@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Login from './Login';
+
 
 function App(){
   const [posts, setPosts] = useState([]);
@@ -8,7 +10,12 @@ function App(){
   const [image, setImage] = useState(null);
   const [caption, setCaption] = useState('');
 
+  //로그인 상태 관리
+  const [token, setToken] = useState(null);
+
   useEffect(() => {
+    // 로그인 되었을 때만 게시글 가져오기
+    if (token){
     // 백엔드에 데이터 요청
     axios.get('http://127.0.0.1:8000/api/posts/')
      .then(response => {
@@ -18,7 +25,8 @@ function App(){
      .catch(error => {
       console.log(error);
      });
-  },[]);
+    }
+  },[token]); // token이 바뀔 때마다 실행
 
   // 게시글 작성 함수
   const handleSubmit = (e) =>{
@@ -33,6 +41,7 @@ function App(){
     axios.post('http://127.0.0.1:8000/api/posts/', formData, {
       headers:{
         'Content-Type' : 'multipart/form-data', 
+        'Authorization': `Bearer ${token}` // 현업에서는 Bearer + 토큰 사용
       }
     })
     .then(response => {
@@ -50,6 +59,12 @@ function App(){
     });
   };
 
+  // 로그인을 안 했으면 로그인 화면 보여줌
+  if (!token){
+    return<Login onLogin={(receivedToken) => setToken(receivedToken)} />;
+  }
+
+  // 로그인시 메인 화면 보여줌 
   return (
     <div style={{ padding:'20px'}}>
       <h1>instagram-clone</h1>
