@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Login from './Login';
+import Signup from './Signup';
 
 
 function App(){
@@ -12,6 +13,8 @@ function App(){
 
   //로그인 상태 관리
   const [token, setToken] = useState(null);
+  //회원가입 상태 추가
+  const [isSignupPage, setIsSignupPage] = useState(false);
 
   useEffect(() => {
     // 로그인 되었을 때만 게시글 가져오기
@@ -61,9 +64,13 @@ function App(){
 
   // 로그인을 안 했으면 로그인 화면 보여줌
   if (!token){
-    return<Login onLogin={(receivedToken) => setToken(receivedToken)} />;
+    if(isSignupPage){
+      return <Signup onSwitchToLogin={()=> setIsSignupPage(false)}/>;
+    }else{
+    return (<Login onLogin={(receivedToken) => setToken(receivedToken)} onSwitchToSignup={()=> setIsSignupPage(true)} />
+    );
   }
-
+ }
   // 로그인시 메인 화면 보여줌 
   return (
     <div style={{ padding:'20px'}}>

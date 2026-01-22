@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-function Login({ onLogin }){
+function Login({ onLogin, onSwitchToSignup }){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -43,6 +43,12 @@ function Login({ onLogin }){
                 style={{ display: 'block', margin: '10px 0', width: '100%'}}/>
                 <button type='submit' style={{ width: '100%', padding: '10px'}}>로그인</button>
             </form>
+            <p style={{ textAlign: 'center', marginTop: '10px' }}>
+                계정이 없으신가요? <br/>
+                <button onClick={onSwitchToSignup} style={{ background: 'none', border: 'none', color: 'blue', cursor: 'pointer' }}>
+                    회원가입 하러 가기
+                </button>
+            </p>
         </div>
     );
 }
