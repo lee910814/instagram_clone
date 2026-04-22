@@ -1,47 +1,54 @@
-import React, { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
-import Login from './Login';
-import Signup from './Signup';
-import Home from './Home';   // 방금 만든 Home 컴포넌트
-import Navbar from './Navbar'; // 아까 만든 Navbar 컴포넌트
+import React from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Sidebar from './components/layout/Sidebar';
+import MobileNav from './components/layout/MobileNav';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import HomePage from './pages/HomePage';
+import ProfilePage from './pages/ProfilePage';
+import ExplorePage from './pages/ExplorePage';
 
-function App() {
-  const [token, setToken] = useState(null);
-  const navigate = useNavigate(); // 페이지 이동을 도와주는 함수
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="app-loading"><div className="spinner" /></div>;
+  return user ? children : <Navigate to="/login" replace />;
+}
 
-  // 로그인 성공 시 실행되는 함수
-  const handleLogin = (receivedToken) => {
-    setToken(receivedToken);
-    navigate('/'); // 홈 화면으로 이동!
-  };
+function AppLayout() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  // 로그아웃 함수
-  const handleLogout = () => {
-    setToken(null);
-    navigate('/login'); // 로그인 화면으로 이동!
-  };
+  if (loading) return <div className="app-loading"><div className="spinner" /></div>;
+
+  const isAuth = !!user;
+
+  const handleSearch = () => navigate('/explore');
 
   return (
-    <div>
-      {/* 1. 네비게이션 바는 항상 위에 떠있음 */}
-      <Navbar isLoggedIn={!!token} onLogout={handleLogout} />
+    <div className={`app-root${isAuth ? ' authenticated' : ''}`}>
+      {isAuth && <Sidebar onSearch={handleSearch} />}
 
-      {/* 2. 주소에 따라 내용이 바뀌는 부분 */}
-      <Routes>
-        {/* 홈 화면: 로그인 안 했으면 로그인 페이지로 튕겨냄 */}
-        <Route path="/" element={token ? <Home token={token} /> : <Login onLogin={handleLogin} onSwitchToSignup={() => navigate('/signup')} />} />
-        
-        {/* 로그인 화면 */}
-        <Route path="/login" element={<Login onLogin={handleLogin} onSwitchToSignup={() => navigate('/signup')} />} />
-        
-        {/* 회원가입 화면 */}
-        <Route path="/signup" element={<Signup onSwitchToLogin={() => navigate('/login')} />} />
-        
-        {/* 마이페이지 (아직 안 만들었으니 임시로 글자만) */}
-        <Route path="/profile" element={token ? <h2>👤 마이페이지 준비 중...</h2> : <Login onLogin={handleLogin} />} />
-      </Routes>
+      <div className="main-content">
+        <Routes>
+          <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
+          <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/" replace />} />
+          <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+          <Route path="/explore" element={<PrivateRoute><ExplorePage /></PrivateRoute>} />
+          <Route path="/profile/:username" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+
+      {isAuth && <MobileNav />}
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppLayout />
+    </AuthProvider>
+  );
+}
